@@ -16,6 +16,7 @@ private:
     ros::NodeHandle private_nh;
     ros::Subscriber image_sub;
     ros::Publisher image_pub;
+    std::vector<int> crop_y;
 };
 
 #endif // __IMAGE_CONVERTER_HPP

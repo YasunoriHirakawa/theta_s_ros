@@ -3,6 +3,12 @@
 #include "opencv_theta_s/EquirectangularConversion/ThetaConversion.hpp"
 
 ImageConverter::ImageConverter() : private_nh("~") {
+    private_nh.param("crop_y", crop_y, std::vector<int>());
+    if (crop_y.size() != 0 && crop_y.size() != 2) {
+        ROS_ERROR("crop_y must be a list of size 2");
+        ros::shutdown();
+    }
+
     image_sub = nh.subscribe("/camera/image_raw", 1, &ImageConverter::image_callback, this);
     image_pub = nh.advertise<sensor_msgs::Image>("/equirectangular/image_raw", 1);
 }
@@ -25,9 +31,12 @@ void ImageConverter::image_callback(const sensor_msgs::ImageConstPtr& received_i
     ROS_DEBUG("fisheye image to equirectangular image");
     static ThetaConversion theta_conversion(cv_image.cols, cv_image.rows);
     theta_conversion.doConversion(cv_image);
+    static auto rect = crop_y.size() == 0 ? cv::Rect(0, 0, cv_image.cols, cv_image.rows)
+                                          : cv::Rect(0, crop_y[0], cv_image.cols, crop_y[1] - crop_y[0] + 1);
+    cv::Mat cv_image_cropped(cv_image, rect);
 
     ROS_DEBUG("cv image to output ros image");
-    sensor_msgs::ImagePtr output_image = cv_bridge::CvImage(std_msgs::Header(), "bgr8", cv_image).toImageMsg();
+    sensor_msgs::ImagePtr output_image = cv_bridge::CvImage(std_msgs::Header(), "bgr8", cv_image_cropped).toImageMsg();
     output_image->header = received_image->header;
     image_pub.publish(output_image);
 
