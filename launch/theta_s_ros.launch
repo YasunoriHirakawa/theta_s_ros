@@ -7,7 +7,7 @@
     <node pkg="theta_s_ros" type="image_converter" name="converter" >
       <remap from="/camera/image_raw" to="$(arg image_raw_topic)" />
       <rosparam>
-          crop_y: [0, 720]
+          crop_y: [145, 475]
       </rosparam>
     </node>
   </group>
