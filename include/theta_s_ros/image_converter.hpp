@@ -8,16 +8,6 @@
 #include <sensor_msgs/Image.h>
 
 namespace theta_s_ros {
-enum class CubemapFace {
-    RIGHT,
-    LEFT,
-    TOP,
-    BOTTOM,
-    FRONT,
-    BACK,
-    MERGED
-};
-
 class ImageConverter {
 public:
     ImageConverter();
