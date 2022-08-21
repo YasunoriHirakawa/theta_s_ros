@@ -7,6 +7,17 @@
 #include <sensor_msgs/CompressedImage.h>
 #include <sensor_msgs/Image.h>
 
+namespace theta_s_ros {
+enum class CubemapFace {
+    RIGHT,
+    LEFT,
+    TOP,
+    BOTTOM,
+    FRONT,
+    BACK,
+    MERGED
+};
+
 class ImageConverter {
 public:
     ImageConverter();
@@ -20,14 +31,18 @@ private:
     ros::NodeHandle private_nh_;
     ros::Subscriber image_sub_;
     ros::Publisher equirectangular_image_pub_;
-    ros::Publisher cubemap_image_right_pub_;
-    ros::Publisher cubemap_image_left_pub_;
-    ros::Publisher cubemap_image_top_pub_;
-    ros::Publisher cubemap_image_bottom_pub_;
-    ros::Publisher cubemap_image_front_pub_;
-    ros::Publisher cubemap_image_back_pub_;
-    ros::Publisher cubemap_image_merged_pub_;
+    std::vector<ros::Publisher> cubemap_image_pubs_;
+    // ros::Publisher cubemap_image_right_pub_;
+    // ros::Publisher cubemap_image_left_pub_;
+    // ros::Publisher cubemap_image_top_pub_;
+    // ros::Publisher cubemap_image_bottom_pub_;
+    // ros::Publisher cubemap_image_front_pub_;
+    // ros::Publisher cubemap_image_back_pub_;
+    // ros::Publisher cubemap_image_merged_pub_;
+    std::map<std::string, CubemapFace> cubemap_face_;
     std::vector<int> crop_y_;
+    bool unmerge_top_and_bottom_;
 };
+} // namespace theta_s_ros
 
 #endif // __IMAGE_CONVERTER_HPP

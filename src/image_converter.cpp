@@ -3,10 +3,14 @@
 #include "opencv_theta_s/EquirectangularConversion/ThetaConversion.hpp"
 #include "panorama2cubemap/src/Panorama2Cubemap.hpp"
 
+namespace theta_s_ros {
 ImageConverter::ImageConverter()
     : private_nh_("~")
 {
+    using namespace std::literals::string_literals;
+
     private_nh_.param("crop_y", crop_y_, std::vector<int>());
+    private_nh_.param("unmerge_top_and_bottom", unmerge_top_and_bottom_, false);
     if (crop_y_.size() != 0 && crop_y_.size() != 2) {
         ROS_ERROR("crop_y_ must be a list of size 2");
         ros::shutdown();
@@ -15,13 +19,10 @@ ImageConverter::ImageConverter()
     image_sub_ = nh_.subscribe(
         "/camera/image_raw", 1, &ImageConverter::image_callback, this, ros::TransportHints().reliable().tcpNoDelay());
     equirectangular_image_pub_ = nh_.advertise<sensor_msgs::CompressedImage>("/equirectangular/image_raw/compressed", 1);
-    cubemap_image_right_pub_ = nh_.advertise<sensor_msgs::CompressedImage>("/cubemap/right/image_raw/compressed", 1);
-    cubemap_image_left_pub_ = nh_.advertise<sensor_msgs::CompressedImage>("/cubemap/left/image_raw/compressed", 1);
-    cubemap_image_top_pub_ = nh_.advertise<sensor_msgs::CompressedImage>("/cubemap/top/image_raw/compressed", 1);
-    cubemap_image_bottom_pub_ = nh_.advertise<sensor_msgs::CompressedImage>("/cubemap/bottom/image_raw/compressed", 1);
-    cubemap_image_front_pub_ = nh_.advertise<sensor_msgs::CompressedImage>("/cubemap/front/image_raw/compressed", 1);
-    cubemap_image_back_pub_ = nh_.advertise<sensor_msgs::CompressedImage>("/cubemap/back/image_raw/compressed", 1);
-    cubemap_image_merged_pub_ = nh_.advertise<sensor_msgs::CompressedImage>("/cubemap/merged/image_raw/compressed", 1);
+    for (const auto& face : { "right"s, "left"s, "top"s, "bottom"s, "front"s, "back"s, "merged"s }) {
+        cubemap_image_pubs_.push_back(nh_.advertise<sensor_msgs::CompressedImage>(
+            "/cubemap/" + face + "/image_raw/compressed", 1));
+    }
 }
 
 void ImageConverter::convert_to_equirectangular(cv::Mat& cv_image, cv::Mat& equirectangular_image)
@@ -66,17 +67,14 @@ void ImageConverter::image_callback(const sensor_msgs::ImageConstPtr& received_i
     std::vector<cv::Mat> cubemap_images;
     cv::Mat merged_image;
     convert_to_equirectangular(cv_image, equirectangular_image);
-    pano2cube(cv_image, cubemap_images, merged_image);
+    pano2cube(cv_image, cubemap_images, merged_image, unmerge_top_and_bottom_);
+    cubemap_images.push_back(merged_image);
 
     ROS_DEBUG("publish images");
     publish_image(equirectangular_image, equirectangular_image_pub_, received_image->header);
-    publish_image(cubemap_images[0], cubemap_image_right_pub_, received_image->header);
-    publish_image(cubemap_images[1], cubemap_image_left_pub_, received_image->header);
-    publish_image(cubemap_images[2], cubemap_image_top_pub_, received_image->header);
-    publish_image(cubemap_images[3], cubemap_image_bottom_pub_, received_image->header);
-    publish_image(cubemap_images[4], cubemap_image_front_pub_, received_image->header);
-    publish_image(cubemap_images[5], cubemap_image_back_pub_, received_image->header);
-    publish_image(merged_image, cubemap_image_merged_pub_, received_image->header);
+    for (std::size_t i = 0; i < cubemap_image_pubs_.size(); ++i) {
+        publish_image(cubemap_images[i], cubemap_image_pubs_[i], received_image->header);
+    }
 
     ROS_INFO("[image_converter:image_callback] elapsed time : %f [sec]", ros::Time::now().toSec() - start_time);
 
@@ -89,11 +87,12 @@ void ImageConverter::process()
     ros::spin();
     return;
 }
+} // namespace image_converter
 
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "convert_ros_image_to_cv_image");
-    ImageConverter image_convertor;
+    theta_s_ros::ImageConverter image_convertor;
     image_convertor.process();
     return 0;
 }
