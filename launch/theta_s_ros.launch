@@ -8,6 +8,7 @@
       <remap from="/camera/image_raw" to="$(arg image_raw_topic)" />
       <rosparam>
           crop_y: [145, 475]
+          unmerge_top_and_bottom: true
       </rosparam>
     </node>
   </group>
