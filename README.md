@@ -9,7 +9,7 @@
 
 ```
 cd catkin_ws/src
-git clone --recursive https://github.com/RenFukatsu/theta_s_ros.git
+git clone --recursive git@github.com:amslabtech/theta_s_ros.git
 cd ..
 catkin build
 ```
