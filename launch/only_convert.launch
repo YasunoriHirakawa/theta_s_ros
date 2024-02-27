@@ -5,10 +5,6 @@
   <group ns="theta_s">
     <node pkg="theta_s_ros" type="image_converter" name="converter" >
       <remap from="/camera/image_raw" to="$(arg image_raw_topic)" />
-      <rosparam>
-          crop_y: [145, 475]
-          unmerge_top_and_bottom: true
-      </rosparam>
     </node>
   </group>
 </launch>

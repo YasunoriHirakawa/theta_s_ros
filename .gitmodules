@@ -1,6 +1,3 @@
 [submodule "include/opencv_theta_s"]
 	path = include/opencv_theta_s
-	url = git@github.com:YasunoriHirakawa/opencv_theta_s.git
-[submodule "include/panorama2cubemap"]
-	path = include/panorama2cubemap
-	url = git@github.com:YasunoriHirakawa/panorama2cubemap.git
+	url = git@github.com:amslabtech/opencv_theta_s.git
