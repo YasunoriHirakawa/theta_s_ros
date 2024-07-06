@@ -72,3 +72,7 @@ install(TARGETS ${PROJECT_NAME} image_converter rosbag_converter
 install(FILES nodelet_description.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
+
+install(DIRECTORY launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
